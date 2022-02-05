@@ -4,11 +4,18 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
 import app.utiltek.udemydelivery.R
+import app.utiltek.udemydelivery.models.ResponseHttp
+import app.utiltek.udemydelivery.models.User
+import app.utiltek.udemydelivery.providers.UsersProvider
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class Registro : AppCompatActivity() {
     var idBtnRegistrar: Button? = null
@@ -19,6 +26,9 @@ class Registro : AppCompatActivity() {
     var idEditTelefono: EditText? = null
     var idEditPasswordRegistro: EditText? = null
     var idEditPasswordConfirmar: EditText? = null
+
+    //llamando a la clase UserProvider
+    var userProvider = UsersProvider()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +56,37 @@ class Registro : AppCompatActivity() {
         val confirmarPass = idEditPasswordConfirmar?.text.toString()
 
         if (esValido(nombre, apellido, email, telefono, password, confirmarPass)) {
-            Toast.makeText(this, "Datos correctos", Toast.LENGTH_SHORT).show()
+            // Toast.makeText(this, "Datos correctos", Toast.LENGTH_SHORT).show()
+
+            val user = User(
+                name = nombre,
+                lastname = apellido,
+                email = email,
+                phone = telefono,
+                password = password
+            )
+
+            userProvider.register(user)?.enqueue(object : Callback<ResponseHttp> {
+                override fun onResponse(
+                    call: Call<ResponseHttp>,
+                    response: Response<ResponseHttp>
+                ) {
+                    Toast.makeText(this@Registro, response.body()?.message, Toast.LENGTH_SHORT)
+                        .show()
+
+
+                }
+
+                override fun onFailure(call: Call<ResponseHttp>, t: Throwable) {
+                    Toast.makeText(
+                        this@Registro,
+                        "Error al ejecutarse ${t.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+            })
+
 
         }
 
